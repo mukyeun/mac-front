@@ -1,0 +1,650 @@
+.App {
+  max-width: 1000px;
+  margin: 1rem auto;
+  padding: 0 1rem;
+}
+
+/* 네비게이션 탭 스타일 */
+.nav-tabs {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 3rem;
+  border-bottom: 2px solid #e2e8f0;
+  padding: 0;
+}
+
+.nav-tab {
+  padding: 1rem 2rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #64748b;
+  border-bottom: 4px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  margin-bottom: -2px;
+}
+
+.nav-tab:hover {
+  color: #3b82f6;
+}
+
+.nav-tab.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+  background-color: #f0f7ff;
+  border-radius: 8px 8px 0 0;
+}
+
+/* 일일 건강 정보 섹션 스타일 */
+.daily-health-section {
+  margin-top: 20px;
+}
+
+.success {
+  color: #28a745;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #28a745;
+  border-radius: 4px;
+  background-color: #d4edda;
+}
+
+/* 헤더 스타일 */
+.App-header {
+  margin-bottom: 30px;
+}
+
+h1 {
+  color: #333;
+  font-size: 24px;
+}
+
+h2 {
+  color: #666;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+/* 섹션 공통 스타일 - 패딩 감소 */
+section, .medical-chart {
+  background: #e9ecef;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #dee2e6;
+}
+/* 섹션 제목 마진 감소 */
+.section-title {
+  font-size: 1.25rem;
+  color: #2d3748;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #4a5568;
+}
+
+/* 차트 행 높이 감소 */
+.chart-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  border-bottom: 1px solid #e1e4e8;
+  min-height: 50px;
+}
+
+/* 입력 필드 높이 감소 */
+.form-group input,
+.form-group select,
+.form-group textarea,
+.modern-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  background-color: #fff;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+/* 차트 내용 패딩 감소 */
+.chart-label {
+  background: #f6f8fa;
+  padding: 8px 16px;
+  font-weight: 500;
+  border-right: 1px solid #e1e4e8;
+  color: #4a5568;
+  display: flex;
+  align-items: center;
+}
+
+.chart-content {
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chart-content input,
+.chart-content select {
+  width: 100%;
+  height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+/* 신체 정보 스타일 */
+.physical-info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.physical-info input {
+  width: 150px !important;
+  height: 38px;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.physical-info span {
+  margin: 0 2px;
+}
+
+.bmi-display {
+  width: 150px;
+  padding: 8px 12px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+/* 메모 영역 */
+.memo-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 1.2rem;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+/* 복용 약물 선택 영역 스타일 */
+.medication-select-area {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.medication-select-area select {
+  flex: 1;
+}
+
+.medication-select-area button {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: white;
+  cursor: pointer;
+}
+/* 맥파분석 섹션 스타일 */
+.pulse-analysis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 12px 20px;
+}
+
+.pulse-analysis .chart-row {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  min-height: auto;
+}
+
+.pulse-analysis .chart-label {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 0;
+  color: #4a5568;
+}
+
+.pulse-analysis .chart-content {
+  width: 100%;
+  padding: 0;
+  position: relative;
+}
+
+.pulse-analysis input {
+  width: 100%;
+  height: 38px;
+  padding: 8px 12px;
+  padding-right: 45px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.pulse-analysis .unit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+}
+
+/* 증상 선택 섹션 스타일 */
+.symptom-selection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 12px 20px;
+}
+
+.symptom-selection .chart-row {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  min-height: auto;
+}
+
+.symptom-selection .chart-label {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 0;
+}
+
+.symptom-selection .chart-content {
+  width: 100%;
+  padding: 0;
+}
+
+/* 증상 추가 버튼 영역 스타일 */
+.symptom-add-button {
+  padding: 12px 20px 0 20px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.symptom-add-button button {
+  width: auto;
+  padding: 8px 16px;
+  background-color: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.symptom-add-button button:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* chart-header 스타일 */
+.chart-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+/* 각 섹션별 헤더 색상 */
+.medical-chart:nth-of-type(1) .chart-header {
+  background-color: #4a90e2;
+  color: white;
+}
+
+.medical-chart:nth-of-type(2) .chart-header {
+  background-color: #50c878;
+  color: white;
+}
+
+.medical-chart:nth-of-type(3) .chart-header {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.medical-chart:nth-of-type(4) .chart-header {
+  background-color: #9b59b6;
+  color: white;
+}
+
+.medical-chart:last-child .chart-header {
+  background-color: #f39c12;
+  color: white;
+}
+
+/* 생활습관 섹션 스타일 */
+.lifestyle-selection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 12px 20px;
+}
+
+.lifestyle-selection .chart-row {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  min-height: auto;
+}
+
+.lifestyle-selection .chart-label {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 0;
+}
+
+.lifestyle-selection .chart-content {
+  width: 100%;
+  padding: 0;
+}
+
+.error-message {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+input.error, select.error {
+  border-color: #dc3545;
+}
+
+input.error:focus, select.error:focus {
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* 데이터 관리 버튼 스타일 */
+.data-management-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.backup-button,
+.restore-button,
+.delete-button,
+.search-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+  color: white;
+  min-width: 100px;
+}
+
+.backup-button { background-color: #28a745; }
+.restore-button { background-color: #17a2b8; }
+.delete-button { background-color: #dc3545; }
+.search-button { background-color: #007bff; }
+
+.backup-button:hover { background-color: #218838; }
+.restore-button:hover { background-color: #138496; }
+.delete-button:hover { background-color: #c82333; }
+.search-button:hover { background-color: #0056b3; }
+
+.backup-button:disabled,
+.restore-button:disabled,
+.delete-button:disabled,
+.search-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .App {
+    padding: 10px;
+  }
+  
+  .form-group {
+    flex: 0 0 100%;
+  }
+  
+  .radio-row, 
+  .checkbox-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .chart-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .chart-label {
+    border-right: none;
+    border-bottom: 1px solid #e1e4e8;
+  }
+
+  .pulse-analysis,
+  .symptom-selection,
+  .lifestyle-selection {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .data-management-buttons {
+    flex-direction: column;
+  }
+  
+  .backup-button,
+  .restore-button,
+  .delete-button,
+  .search-button {
+    width: 100%;
+  }
+}
+
+/* 전체 컨테이너 */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: #f8fafc;
+}
+
+/* 검색 섹션 */
+.search-section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+
+.search-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* 입력 필드 */
+input[type="text"],
+input[type="date"],
+select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  background: #fff;
+}
+
+input[type="text"]:focus,
+input[type="date"]:focus,
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 버튼 */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+}
+
+/* 테이블 */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #f1f5f9;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  color: #475569;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+}
+
+tr:hover {
+  background: #f8fafc;
+}
+
+/* 페이지네이션 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.pagination button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .search-controls {
+    flex-direction: column;
+  }
+  
+  .search-controls > * {
+    width: 100%;
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+}
+
+/* 상태 표시 배지 */
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.badge-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge-danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .nav-tabs {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .nav-tab {
+    text-align: center;
+    border-bottom: none;
+    border-left: 4px solid transparent;
+    margin-bottom: 0;
+  }
+
+  .nav-tab.active {
+    border-left-color: #3b82f6;
+    border-radius: 0;
+  }
+}
+
+/* 옵션 1: 차분한 네이비와 따뜻한 베이지 */
+.section-bar {
+  background-color: #34495e;  /* 깊은 네이비 블루 */
+  color: #f5e6d3;            /* 따뜻한 베이지 */
+}
+
+/* 옵션 2: 차분한 올리브 그린과 부드러운 라벤더 */
+.section-bar {
+  background-color: #556b2f;  /* 올리브 그린 */
+  color: #e6e6fa;            /* 라벤더 */
+}
+
+/* 옵션 3: 깊은 청록색과 산호색 */
+.section-bar {
+  background-color: #2c7873;  /* 청록색 */
+  color: #ffa07a;            /* 연한 산호색 */
+}
+
+/* 옵션 4: 클래식한 딥 버건디와 민트 */
+.section-bar {
+  background-color: #800020;  /* 딥 버건디 */
+  color: #98ff98;            /* 민트 그린 */
+}
