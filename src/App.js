@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, NavLink as RouterNavLink, Navigate, Link } from 'react-router-dom';
+import { Routes, Route, NavLink as RouterNavLink, Navigate } from 'react-router-dom';
 import styled from 'styled-components';
-// 새로 추가된 import
-import { Home, About, Profile } from './pages';
-// 기존 import 유지
+import { Home, About, Profile, Login } from './pages';
+import APITest from './components/test/APITest';
 import { searchData } from './utils/dataManager';
-import { validateHealthInfo } from './utils/validation';
-import SearchModal from './components/SearchModal';
-import HealthInfoForm from './components/HealthInfoForm';
-import HealthInfoList from './components/HealthInfoList';
+import HealthInfoForm from './components/health/HealthInfoForm';
+import HealthInfoList from './components/health/HealthInfoList';
 import { 증상카테고리 } from './data/SymptomCategories';
 import { healthInfoService } from './services/api';
+import PrivateRoute from './components/common/PrivateRoute';
+import { useAuth } from './hooks/useAuth';
 
 const AppContainer = styled.div`
   max-width: 1200px;
@@ -52,7 +51,7 @@ const StyledNavLink = styled(RouterNavLink)`
 const initialFormData = {
   기본정보: {
     이름: '',
-    연처: '',
+    연락처: '',
     주민등록번호: '',
     성별: '',
     신장: '',
@@ -76,7 +75,21 @@ const initialFormData = {
   메모: ''
 };
 
+const LogoutButton = styled.button`
+  background: none;
+  border: none;
+  color: #495057;
+  padding: 1rem 2rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  
+  &:hover {
+    color: #dc3545;
+  }
+`;
+
 function App() {
+  const { user, isAuthenticated, logout } = useAuth();
   const [formData, setFormData] = useState(initialFormData);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState({
@@ -86,10 +99,8 @@ function App() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
-  const [showSearchModal, setShowSearchModal] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
-  const [isValid, setIsValid] = useState(false);
-  const formRef = useRef(null);
+  const [isValid, setIsValid] = useState(true);
 
   const handleInputChange = (e, section) => {
     const { name, value } = e.target;
@@ -182,21 +193,42 @@ function App() {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
     <AppContainer>
-      <NavBar>
-        <StyledNavLink to="/">홈</StyledNavLink>
-        <StyledNavLink to="/list">목록보기</StyledNavLink>
-        <StyledNavLink to="/new">새 건강정보 입력</StyledNavLink>
-        <StyledNavLink to="/profile">프로필</StyledNavLink>
-        <StyledNavLink to="/about">About</StyledNavLink>
-      </NavBar>
+      {isAuthenticated && (
+        <NavBar>
+          <StyledNavLink to="/">홈</StyledNavLink>
+          <StyledNavLink to="/list">목록보기</StyledNavLink>
+          <StyledNavLink to="/new">새 건강정보 입력</StyledNavLink>
+          <StyledNavLink to="/profile">프로필</StyledNavLink>
+          <StyledNavLink to="/about">About</StyledNavLink>
+          <StyledNavLink to="/test">API 테스트</StyledNavLink>
+          <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+        </NavBar>
+      )}
+      
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/list" element={<HealthInfoList />} />
-        <Route 
-          path="/new" 
-          element={
+        <Route path="/login" element={
+          isAuthenticated ? 
+            <Navigate to="/" replace /> : 
+            <Login />
+        } />
+        <Route path="/" element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        } />
+        <Route path="/list" element={
+          <PrivateRoute>
+            <HealthInfoList />
+          </PrivateRoute>
+        } />
+        <Route path="/new" element={
+          <PrivateRoute>
             <HealthInfoForm
               formData={formData}
               setFormData={setFormData}
@@ -211,10 +243,23 @@ function App() {
               isValid={isValid}
               증상카테고리={증상카테고리}
             />
-          } 
-        />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/about" element={<About />} />
+          </PrivateRoute>
+        } />
+        <Route path="/profile" element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
+        } />
+        <Route path="/about" element={
+          <PrivateRoute>
+            <About />
+          </PrivateRoute>
+        } />
+        <Route path="/test" element={
+          <PrivateRoute>
+            <APITest />
+          </PrivateRoute>
+        } />
       </Routes>
     </AppContainer>
   );

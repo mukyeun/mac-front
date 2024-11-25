@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import HealthInfoForm from '../components/HealthInfoForm';
+import HealthInfoForm from '../components/health/HealthInfoForm';
 import { 증상카테고리 } from '../data/SymptomCategories';
 
 function HealthInfoPage() {

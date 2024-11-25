@@ -1,25 +1,25 @@
 import React, { useEffect, useState, useRef } from 'react';
 import styled, { css } from 'styled-components';
-import { 약물카테고리 } from '../data/MedicineCategories.js';
-import { 증상카테고리 } from '../data/SymptomCategories';
-import { getHealthInfoList } from '../api/healthInfo';
-import { calculateBMI, calculateBMIStatus } from '../utils/bmiCalculator';
+import { 약물카테고리 } from '../../data/MedicineCategories.js';
+import { 증상카테고리 } from '../../data/SymptomCategories.js';
+import { getHealthInfoList } from '../../api/healthInfo.js';
+import { calculateBMI, calculateBMIStatus } from '../../utils/bmiCalculator.js';
 import { 
   formatPhoneNumber, 
   formatResidentNumber, 
   getGenderFromResidentNumber 
-} from '../utils/formatters';
+} from '../../utils/formatters.js';
 import { 
   personalityOptions, 
   levelOptions, 
   favoriteItems,
   stressLevels,
   workIntensities 
-} from '../constants/healthInfo';
+} from '../../constants/healthInfo.js';
 import { useNavigate } from 'react-router-dom';
-import { createHealthInfo } from '../api/healthInfo';
-import { validateHealthInfo } from '../utils/validation';
-import ValidationMessage from './common/ValidationMessage';
+import { createHealthInfo } from '../../api/healthInfo.js';
+import { validateHealthInfo } from '../../utils/validation.js';
+import ValidationMessage from '../common/ValidationMessage.js';
 
 // 스타일 컴포넌트들을 파일 상단에 모아서 선언
 const FormContainer = styled.div`
