@@ -1,64 +1,109 @@
 import React from 'react';
-import styled from 'styled-components';
+import {
+  Box,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Paper,
+  Typography,
+  Chip,
+  IconButton,
+  Tooltip
+} from '@mui/material';
+import { Clear as ClearIcon } from '@mui/icons-material';
 
-const FilterContainer = styled.div`
-  display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-`;
+const FilterPanel = ({ filters, onFilterChange }) => {
+  const handleClear = (filterType) => {
+    onFilterChange({ ...filters, [filterType]: '' });
+  };
 
-const FilterGroup = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const FilterLabel = styled.label`
-  font-weight: 500;
-  color: #495057;
-`;
-
-const FilterSelect = styled.select`
-  padding: 6px 12px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  background-color: white;
-`;
-
-function FilterPanel({ filters, onFilterChange }) {
   return (
-    <FilterContainer>
-      <FilterGroup>
-        <FilterLabel>상태</FilterLabel>
-        <FilterSelect
+    <Paper 
+      elevation={0} 
+      sx={{ 
+        mb: 2,
+        p: 2,
+        backgroundColor: 'background.default',
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 2
+      }}
+    >
+      <FormControl size="small" sx={{ minWidth: 120 }}>
+        <InputLabel>상태</InputLabel>
+        <Select
           value={filters.status || ''}
           onChange={(e) => onFilterChange({ ...filters, status: e.target.value })}
+          label="상태"
         >
-          <option value="">전체</option>
-          <option value="정상">정상</option>
-          <option value="주의">주의</option>
-          <option value="위험">위험</option>
-        </FilterSelect>
-      </FilterGroup>
+          <MenuItem value="">전체</MenuItem>
+          <MenuItem value="정상">정상</MenuItem>
+          <MenuItem value="주의">주의</MenuItem>
+          <MenuItem value="위험">위험</MenuItem>
+        </Select>
+        {filters.status && (
+          <Tooltip title="필터 초기화">
+            <IconButton
+              size="small"
+              onClick={() => handleClear('status')}
+              sx={{ position: 'absolute', right: 28, top: 8 }}
+            >
+              <ClearIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+      </FormControl>
 
-      <FilterGroup>
-        <FilterLabel>기간</FilterLabel>
-        <FilterSelect
+      <FormControl size="small" sx={{ minWidth: 120 }}>
+        <InputLabel>기간</InputLabel>
+        <Select
           value={filters.period || ''}
           onChange={(e) => onFilterChange({ ...filters, period: e.target.value })}
+          label="기간"
         >
-          <option value="">전체기간</option>
-          <option value="1week">1주일</option>
-          <option value="1month">1개월</option>
-          <option value="3months">3개월</option>
-          <option value="6months">6개월</option>
-        </FilterSelect>
-      </FilterGroup>
-    </FilterContainer>
+          <MenuItem value="">전체기간</MenuItem>
+          <MenuItem value="1week">1주일</MenuItem>
+          <MenuItem value="1month">1개월</MenuItem>
+          <MenuItem value="3months">3개월</MenuItem>
+          <MenuItem value="6months">6개월</MenuItem>
+        </Select>
+        {filters.period && (
+          <Tooltip title="필터 초기화">
+            <IconButton
+              size="small"
+              onClick={() => handleClear('period')}
+              sx={{ position: 'absolute', right: 28, top: 8 }}
+            >
+              <ClearIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+      </FormControl>
+
+      {Object.entries(filters).some(([_, value]) => value) && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Typography variant="body2" color="text.secondary">
+            활성 필터:
+          </Typography>
+          {filters.status && (
+            <Chip
+              label={`상태: ${filters.status}`}
+              onDelete={() => handleClear('status')}
+              size="small"
+            />
+          )}
+          {filters.period && (
+            <Chip
+              label={`기간: ${filters.period}`}
+              onDelete={() => handleClear('period')}
+              size="small"
+            />
+          )}
+        </Box>
+      )}
+    </Paper>
   );
-}
+};
 
 export default FilterPanel;

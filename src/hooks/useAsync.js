@@ -19,6 +19,7 @@ export const useAsync = (asyncFunction, immediate = false) => {
       const errorMessage = formatErrorMessage(error);
       setError(errorMessage);
       setStatus('error');
+      handleError(error); // 전역 에러 처리
       throw error;
     }
   }, [asyncFunction]);
@@ -35,14 +36,24 @@ export const useAsync = (asyncFunction, immediate = false) => {
     setError(null);
   }, []);
 
+  const retry = useCallback(() => {
+    if (status === 'error') {
+      execute();
+    }
+  }, [status, execute]);
+
   return {
     execute,
     reset,
+    retry,
     status,
     data,
     error,
     isLoading: status === 'pending',
     isSuccess: status === 'success',
-    isError: status === 'error'
+    isError: status === 'error',
+    isIdle: status === 'idle'
   };
 };
+
+export default useAsync;

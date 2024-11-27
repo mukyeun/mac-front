@@ -1,6 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, NavLink as RouterNavLink, Navigate } from 'react-router-dom';
-import styled from 'styled-components';
+import styled, { ThemeProvider as StyledThemeProvider } from 'styled-components';
+import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { IconButton, Box } from '@mui/material';
+import { Brightness4, Brightness7 } from '@mui/icons-material';
+import getTheme from './styles/theme';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { Home, About, Profile, Login } from './pages';
 import APITest from './components/test/APITest';
 import { searchData } from './utils/dataManager';
@@ -22,12 +28,13 @@ const NavBar = styled.nav`
   gap: 2rem;
   margin-bottom: 3rem;
   padding: 0;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid ${({ theme }) => theme.palette?.divider || '#e0e0e0'};
+  background-color: ${({ theme }) => theme.palette?.background?.paper || '#ffffff'};
 `;
 
 const StyledNavLink = styled(RouterNavLink)`
   text-decoration: none;
-  color: #495057;
+  color: ${({ theme }) => theme.palette?.text?.primary || '#000000'};
   padding: 1rem 2rem;
   font-size: 1.25rem;
   font-weight: 600;
@@ -35,19 +42,31 @@ const StyledNavLink = styled(RouterNavLink)`
   transition: all 0.3s;
 
   &:hover {
-    color: #3b82f6;
-    background-color: #f8f9fa;
+    color: ${({ theme }) => theme.palette?.primary?.main || '#1976d2'};
+    background-color: ${({ theme }) => theme.palette?.action?.hover || 'rgba(0, 0, 0, 0.04)'};
   }
 
   &.active {
-    color: #3b82f6;
-    border-bottom-color: #3b82f6;
-    background-color: #f0f7ff;
+    color: ${({ theme }) => theme.palette?.primary?.main || '#1976d2'};
+    border-bottom-color: ${({ theme }) => theme.palette?.primary?.main || '#1976d2'};
+    background-color: ${({ theme }) => theme.palette?.action?.selected || 'rgba(0, 0, 0, 0.08)'};
     border-radius: 8px 8px 0 0;
     font-weight: bold;
   }
 `;
 
+const LogoutButton = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.palette?.text?.primary || '#000000'};
+  padding: 1rem 2rem;
+  font-size: 1.25rem;
+  cursor: pointer;
+  
+  &:hover {
+    color: ${({ theme }) => theme.palette?.error?.main || '#d32f2f'};
+  }
+`;
 const initialFormData = {
   기본정보: {
     이름: '',
@@ -75,20 +94,26 @@ const initialFormData = {
   메모: ''
 };
 
-const LogoutButton = styled.button`
-  background: none;
-  border: none;
-  color: #495057;
-  padding: 1rem 2rem;
-  font-size: 1.25rem;
-  cursor: pointer;
+const ThemeToggleButton = () => {
+  const { mode, toggleMode } = useTheme();
   
-  &:hover {
-    color: #dc3545;
-  }
-`;
+  return (
+    <IconButton 
+      onClick={toggleMode} 
+      color="inherit"
+      sx={{ 
+        ml: 2,
+        color: mode === 'dark' ? 'white' : 'black'
+      }}
+    >
+      {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+    </IconButton>
+  );
+};
 
-function App() {
+function AppContent() {
+  const { mode } = useTheme();
+  const theme = React.useMemo(() => getTheme(mode), [mode]);
   const { user, isAuthenticated, logout } = useAuth();
   const [formData, setFormData] = useState(initialFormData);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
@@ -104,26 +129,13 @@ function App() {
 
   const handleInputChange = (e, section) => {
     const { name, value } = e.target;
-    
-    // 디버깅 위한 로그
-    console.log('Input Change:', {
-      section,
-      name,
-      value,
-      currentFormData: formData
-    });
-
-    setFormData(prev => {
-      const newData = {
-        ...prev,
-        [section]: {
-          ...prev[section],
-          [name]: value
-        }
-      };
-      console.log('Updated FormData:', newData);
-      return newData;
-    });
+    setFormData(prev => ({
+      ...prev,
+      [section]: {
+        ...prev[section],
+        [name]: value
+      }
+    }));
   };
 
   const handleSubmit = async () => {
@@ -144,14 +156,9 @@ function App() {
         created_at: new Date().toISOString()
       };
 
-      console.log('저장 시도:', saveData);
-
       const response = await healthInfoService.create(saveData);
-      console.log('API 응답:', response);
-
       if (response) {
         alert('건강정보가 성공적으로 저장되었습니다.');
-        
         setFormData({...initialFormData});
         setSelectedSymptoms([]);
         setSelectedCategory({
@@ -159,12 +166,10 @@ function App() {
           중분류: '',
           소분류: ''
         });
-
         setTimeout(() => {
           window.location.reload();
         }, 1000);
       }
-
     } catch (error) {
       console.error('저장 실패:', error);
       alert(`저장에 실패했습니다: ${error.message}`);
@@ -193,75 +198,99 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const styledTheme = {
+    palette: {
+      mode,
+      divider: theme.palette.divider,
+      text: theme.palette.text,
+      primary: theme.palette.primary,
+      background: theme.palette.background,
+      action: theme.palette.action,
+      error: theme.palette.error
+    }
   };
 
   return (
-    <AppContainer>
-      {isAuthenticated && (
-        <NavBar>
-          <StyledNavLink to="/">홈</StyledNavLink>
-          <StyledNavLink to="/list">목록보기</StyledNavLink>
-          <StyledNavLink to="/new">새 건강정보 입력</StyledNavLink>
-          <StyledNavLink to="/profile">프로필</StyledNavLink>
-          <StyledNavLink to="/about">About</StyledNavLink>
-          <StyledNavLink to="/test">API 테스트</StyledNavLink>
-          <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
-        </NavBar>
-      )}
-      
-      <Routes>
-        <Route path="/login" element={
-          isAuthenticated ? 
-            <Navigate to="/" replace /> : 
-            <Login />
-        } />
-        <Route path="/" element={
-          <PrivateRoute>
-            <Home />
-          </PrivateRoute>
-        } />
-        <Route path="/list" element={
-          <PrivateRoute>
-            <HealthInfoList />
-          </PrivateRoute>
-        } />
-        <Route path="/new" element={
-          <PrivateRoute>
-            <HealthInfoForm
-              formData={formData}
-              setFormData={setFormData}
-              selectedSymptoms={selectedSymptoms}
-              setSelectedSymptoms={setSelectedSymptoms}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-              handleInputChange={handleInputChange}
-              handleSubmit={handleSubmit}
-              handleReset={handleReset}
-              validationErrors={validationErrors}
-              isValid={isValid}
-              증상카테고리={증상카테고리}
-            />
-          </PrivateRoute>
-        } />
-        <Route path="/profile" element={
-          <PrivateRoute>
-            <Profile />
-          </PrivateRoute>
-        } />
-        <Route path="/about" element={
-          <PrivateRoute>
-            <About />
-          </PrivateRoute>
-        } />
-        <Route path="/test" element={
-          <PrivateRoute>
-            <APITest />
-          </PrivateRoute>
-        } />
-      </Routes>
-    </AppContainer>
+    <StyledThemeProvider theme={styledTheme}>
+      <MuiThemeProvider theme={theme}>
+        <CssBaseline />
+        <Box sx={{ bgcolor: 'background.default', minHeight: '100vh' }}>
+          <AppContainer>
+            {isAuthenticated && (
+              <NavBar>
+                <StyledNavLink to="/">홈</StyledNavLink>
+                <StyledNavLink to="/list">목록보기</StyledNavLink>
+                <StyledNavLink to="/new">새 건강정보 입력</StyledNavLink>
+                <StyledNavLink to="/profile">프로필</StyledNavLink>
+                <StyledNavLink to="/about">About</StyledNavLink>
+                <StyledNavLink to="/test">API 테스트</StyledNavLink>
+                <Box sx={{ display: 'flex', alignItems: 'center', marginLeft: 'auto' }}>
+                  <LogoutButton onClick={logout}>로그아웃</LogoutButton>
+                  <ThemeToggleButton />
+                </Box>
+              </NavBar>
+            )}
+            
+            <Routes>
+              <Route path="/login" element={
+                isAuthenticated ? <Navigate to="/" replace /> : <Login />
+              } />
+              <Route path="/" element={
+                <PrivateRoute>
+                  <Home />
+                </PrivateRoute>
+              } />
+              <Route path="/list" element={
+                <PrivateRoute>
+                  <HealthInfoList />
+                </PrivateRoute>
+              } />
+              <Route path="/new" element={
+                <PrivateRoute>
+                  <HealthInfoForm
+                    formData={formData}
+                    setFormData={setFormData}
+                    selectedSymptoms={selectedSymptoms}
+                    setSelectedSymptoms={setSelectedSymptoms}
+                    selectedCategory={selectedCategory}
+                    setSelectedCategory={setSelectedCategory}
+                    handleInputChange={handleInputChange}
+                    handleSubmit={handleSubmit}
+                    handleReset={handleReset}
+                    validationErrors={validationErrors}
+                    isValid={isValid}
+                    증상카테고리={증상카테고리}
+                  />
+                </PrivateRoute>
+              } />
+              <Route path="/profile" element={
+                <PrivateRoute>
+                  <Profile />
+                </PrivateRoute>
+              } />
+              <Route path="/about" element={
+                <PrivateRoute>
+                  <About />
+                </PrivateRoute>
+              } />
+              <Route path="/test" element={
+                <PrivateRoute>
+                  <APITest />
+                </PrivateRoute>
+              } />
+            </Routes>
+          </AppContainer>
+        </Box>
+      </MuiThemeProvider>
+    </StyledThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 

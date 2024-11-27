@@ -1,65 +1,79 @@
-import React from 'react';
-import styled from 'styled-components';
+import React, { useState } from 'react';
+import { 
+  Paper,
+  InputBase,
+  IconButton,
+  Tooltip,
+  Box
+} from '@mui/material';
+import { 
+  Search as SearchIcon,
+  Clear as ClearIcon
+} from '@mui/icons-material';
 
-const SearchContainer = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const SearchForm = styled.form`
-  display: flex;
-  gap: 8px;
-`;
-
-const SearchInput = styled.input`
-  flex: 1;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-
-  &:focus {
-    outline: none;
-    border-color: #4361ee;
-  }
-`;
-
-const SearchButton = styled.button`
-  padding: 8px 16px;
-  background-color: #4361ee;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #3730a3;
-  }
-`;
-
-const SearchBar = ({ value, onChange, onSearch }) => {
-  const handleChange = (e) => {
-    onChange(e);
-  };
-
+const SearchBar = ({ 
+  value, 
+  onChange, 
+  onSearch,
+  placeholder = "이름으로 검색"
+}) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSearch();
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      onSearch();
+    }
+  };
+
+  const handleClear = () => {
+    onChange({ target: { value: '' } });
+  };
+
   return (
-    <SearchContainer>
-      <SearchForm onSubmit={handleSubmit}>
-        <SearchInput
-          type="text"
+    <Box sx={{ mb: 2 }}>
+      <Paper
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          p: '2px 4px',
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%'
+        }}
+        elevation={1}
+      >
+        <IconButton 
+          type="submit" 
+          sx={{ p: '10px' }} 
+          aria-label="search"
+        >
+          <SearchIcon />
+        </IconButton>
+
+        <InputBase
+          sx={{ ml: 1, flex: 1 }}
+          placeholder={placeholder}
           value={value || ''}
-          onChange={handleChange}
-          placeholder="이름으로 검색"
+          onChange={onChange}
+          onKeyPress={handleKeyPress}
         />
-        <SearchButton type="submit">
-          검색
-        </SearchButton>
-      </SearchForm>
-    </SearchContainer>
+
+        {value && (
+          <Tooltip title="검색어 지우기">
+            <IconButton 
+              sx={{ p: '10px' }}
+              aria-label="clear"
+              onClick={handleClear}
+            >
+              <ClearIcon />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Paper>
+    </Box>
   );
 };
 

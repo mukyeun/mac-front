@@ -1,5 +1,0 @@
-[33mc416471[m[33m ([m[1;36mHEAD[m[33m, [m[1;33mtag: [m[1;33mui-improvement-v1[m[33m, [m[1;31morigin/main[m[33m, [m[1;32mui-improvement-v2[m[33m, [m[1;32mmain[m[33m)[m UI 개선: 섹션 레이아웃 및 스타일 수정 - 3열 레이아웃, 색상 개선, 버튼 최적화
-[33m6683033[m UI 개선: 섹션 레이아웃 및 스타일 수정
-[33meeb0962[m feat: 증상 선택 UI 개선 및 기능 구현
-[33mb827eca[m feat: 증상 선택 UI 개선
-[33m06e54c4[m[33m ([m[1;33mtag: [m[1;33mv1.0.0-base[m[33m, [m[1;31morigin/feature/symptom-selection[m[33m, [m[1;32mfeature/symptom-selection[m[33m)[m feat: 증상 선택 기능 구현 완료

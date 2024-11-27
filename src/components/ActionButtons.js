@@ -1,42 +1,84 @@
 import React from 'react';
-import styled from 'styled-components';
+import { 
+  Box, 
+  Button, 
+  IconButton, 
+  Tooltip 
+} from '@mui/material';
+import { 
+  Edit as EditIcon,
+  Delete as DeleteIcon
+} from '@mui/icons-material';
 
-const ActionButtons = ({ onEdit, onDelete }) => {
+const ActionButtons = ({ 
+  onEdit, 
+  onDelete,
+  showLabels = true,
+  size = 'small',
+  tooltipPlacement = 'top',
+  disabled = false
+}) => {
+  const buttons = showLabels ? (
+    <>
+      <Button
+        variant="contained"
+        color="success"
+        size={size}
+        onClick={onEdit}
+        startIcon={<EditIcon />}
+        disabled={disabled}
+        sx={{ minWidth: 'auto' }}
+      >
+        수정
+      </Button>
+      <Button
+        variant="contained"
+        color="error"
+        size={size}
+        onClick={onDelete}
+        startIcon={<DeleteIcon />}
+        disabled={disabled}
+        sx={{ minWidth: 'auto' }}
+      >
+        삭제
+      </Button>
+    </>
+  ) : (
+    <>
+      <Tooltip title="수정" placement={tooltipPlacement}>
+        <IconButton
+          color="success"
+          size={size}
+          onClick={onEdit}
+          disabled={disabled}
+        >
+          <EditIcon />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="삭제" placement={tooltipPlacement}>
+        <IconButton
+          color="error"
+          size={size}
+          onClick={onDelete}
+          disabled={disabled}
+        >
+          <DeleteIcon />
+        </IconButton>
+      </Tooltip>
+    </>
+  );
+
   return (
-    <ButtonGroup>
-      <EditButton onClick={onEdit}>수정</EditButton>
-      <DeleteButton onClick={onDelete}>삭제</DeleteButton>
-    </ButtonGroup>
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 1,
+        alignItems: 'center'
+      }}
+    >
+      {buttons}
+    </Box>
   );
 };
-
-const ButtonGroup = styled.div`
-  display: flex;
-  gap: 0.5rem;
-`;
-
-const Button = styled.button`
-  padding: 0.25rem 0.5rem;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.875rem;
-`;
-
-const EditButton = styled(Button)`
-  background-color: #28a745;
-  color: white;
-  &:hover {
-    background-color: #218838;
-  }
-`;
-
-const DeleteButton = styled(Button)`
-  background-color: #dc3545;
-  color: white;
-  &:hover {
-    background-color: #c82333;
-  }
-`;
 
 export default ActionButtons;

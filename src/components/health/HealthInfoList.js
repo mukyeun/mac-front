@@ -1,17 +1,30 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import styled from 'styled-components';
+import { 
+  Box, 
+  Button, 
+  IconButton, 
+  Checkbox as MuiCheckbox,
+  Table as MuiTable,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TableSortLabel,
+  Tooltip
+} from '@mui/material';
 import { useHealthInfo } from '../../hooks/useHealthInfo';
 import SearchBar from '../common/SearchBar';
 import FilterPanel from '../common/FilterPanel';
 import Pagination from '../common/Pagination';
 import LoadingSpinner from '../common/LoadingSpinner';
+import ErrorMessage from '../common/ErrorMessage';
 import ErrorBoundary from '../common/ErrorBoundary';
-import ActionButtons from '../ActionButtons';
 import { healthInfoService } from '../../services/api';
-import { getHealthInfoList } from '../../api/healthInfo';
 import { newHealthInfoService } from '../../services/newHealthInfoService';
 
-// Excel 아이콘 컴포넌트 추가
+// Excel 아이콘 컴포넌트
 const ExcelIcon = () => (
   <svg 
     width="16" 
@@ -31,9 +44,28 @@ const ExcelIcon = () => (
   </svg>
 );
 
+// 테이블 열 설정
+const columns = [
+  { id: 'date', label: '날짜', width: 100 },
+  { id: 'name', label: '이름', width: 120 },
+  { id: 'phone', label: '연락처', width: 130 },
+  { id: 'age', label: '나이', width: 70 },
+  { id: 'gender', label: '성별', width: 70 },
+  { id: 'personality', label: '성격', width: 100 },
+  { id: 'bmi', label: 'BMI', width: 70 },
+  { id: 'stress', label: '스트레스', width: 100 },
+  { id: 'workload', label: '노동강도', width: 100 },
+  { id: 'symptoms', label: '증상', width: 150 },
+  { id: 'bloodPressure', label: '혈압', width: 100 },
+  { id: 'medication', label: '복용약물', width: 150 }
+];
+
 const HealthInfoList = () => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
+  const [orderBy, setOrderBy] = useState('date');
+  const [order, setOrder] = useState('desc');
+  
   const {
     listStatus,
     listData,
@@ -43,76 +75,66 @@ const HealthInfoList = () => {
     setSearchTerm,
     filters,
     handleFilterChange,
-    handleEdit,
-    handleDelete,
   } = useHealthInfo();
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+    loadList({ 
+      sort: property,
+      order: isAsc ? 'desc' : 'asc',
+      ...filters 
+    });
+  };
 
-  // 검색어 입력 핸들러 수정
   const handleInputChange = useCallback((e) => {
-    e.preventDefault();  // 기본 이벤트 방지
-    const value = e.target.value;
-    setSearchTerm(value);  // 검색어 상태만 업데이트
+    e.preventDefault();
+    setSearchTerm(e.target.value);
   }, [setSearchTerm]);
 
-  // 검색 실행 핸들러 수정
   const handleSearchSubmit = useCallback(async (e) => {
     if (e) e.preventDefault();
-    
-    // 검색어가 비어있으면 전체 목록 로드
     if (!searchTerm.trim()) {
       loadList();
       return;
     }
-
-    // 검색 실행
     try {
       await loadList({
         name: searchTerm,
-        ...filters
+        ...filters,
+        sort: orderBy,
+        order
       });
     } catch (err) {
       console.error('검색 오류:', err);
     }
-  }, [searchTerm, filters, loadList]);
+  }, [searchTerm, filters, orderBy, order, loadList]);
 
-  // 초기 데이터 로드
   useEffect(() => {
-    loadList();
-  }, [loadList]);
+    loadList({ sort: orderBy, order });
+  }, [loadList, orderBy, order]);
 
-  // 전체 선택/해제 처리
   const handleSelectAll = (e) => {
-    if (e.target.checked) {
-      setSelectedItems(listData?.items?.map(item => item.id) || []);
-    } else {
-      setSelectedItems([]);
-    }
+    setSelectedItems(e.target.checked ? (listData?.items?.map(item => item.id) || []) : []);
   };
 
-  // 개별 항목 선택/해제 처리
   const handleSelectItem = (id) => {
-    setSelectedItems(prev => {
-      if (prev.includes(id)) {
-        return prev.filter(itemId => itemId !== id);
-      } else {
-        return [...prev, id];
-      }
-    });
+    setSelectedItems(prev => 
+      prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]
+    );
   };
 
-  // 선택된 항목 일괄 삭제 함수 수정
   const handleBulkDelete = async () => {
-    if (selectedItems.length === 0) {
+    if (!selectedItems.length) {
       alert('삭제할 항목을 선택해주세요.');
       return;
     }
 
     if (window.confirm(`선택한 ${selectedItems.length}개 항목을 삭제하시겠습니까?`)) {
       try {
-        // 여러 항목 한 번에 삭제
         await newHealthInfoService.deleteMultiple(selectedItems);
         setSelectedItems([]);
-        loadList();
+        loadList({ sort: orderBy, order });
         alert('선택한 항목이 삭제되었습니다.');
       } catch (error) {
         console.error('Bulk delete error:', error);
@@ -121,16 +143,19 @@ const HealthInfoList = () => {
     }
   };
 
-  // 엑셀 내보내기 함수 수정
   const handleExportExcel = async () => {
     setIsExporting(true);
     try {
-      window.open('http://localhost:5000/api/health-info/export', '_blank');
-      
-      setTimeout(() => {
-        alert('엑셀 파일 다운로드가 시작되었습니다.');
-      }, 100);
-
+      const response = await fetch('http://localhost:5000/api/health-info/export');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `건강정보_${new Date().toLocaleDateString()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (error) {
       console.error('Excel export error:', error);
       alert('엑셀 파일 다운로드 중 오류가 발생했습니다.');
@@ -139,204 +164,124 @@ const HealthInfoList = () => {
     }
   };
 
-  if (listStatus === 'loading') return <LoadingSpinner />;
-  if (listStatus === 'error') return <div>에러: {listError}</div>;
+  if (listStatus === 'loading') {
+    return <LoadingSpinner message="건강 정보를 불러오는 중..." />;
+  }
+
+  if (listStatus === 'error') {
+    return (
+      <ErrorMessage 
+        error={listError}
+        onRetry={() => loadList({ sort: orderBy, order })}
+        message="건강 정보를 불러오는데 실패했습니다."
+        details="네트워크 연결을 확인하시거나 잠시 후 다시 시도해주세요."
+      />
+    );
+  }
 
   return (
-    <ListContainer>
-      <SearchBar
-        value={searchTerm}
-        onChange={handleInputChange}
-        onSearch={handleSearchSubmit}  // 검색 버튼 클릭시에만 실행
-      />
+    <TableContainer component={Paper}>
+      <Box sx={{ p: 2 }}>
+        <SearchBar
+          value={searchTerm}
+          onChange={handleInputChange}
+          onSearch={handleSearchSubmit}
+        />
 
-      <FilterPanel
-        filters={filters}
-        onFilterChange={handleFilterChange}
-      />
+        <FilterPanel
+          filters={filters}
+          onFilterChange={handleFilterChange}
+        />
 
-      <ButtonContainer>
-        {selectedItems.length > 0 && (
-          <DeleteButton onClick={handleBulkDelete}>
-            선택한 항목 삭제 ({selectedItems.length}개)
-          </DeleteButton>
-        )}
-        
-        <ExportButton
-          onClick={handleExportExcel}
-          disabled={isExporting}
-        >
-          {isExporting ? (
-            <>
-              <LoadingSpinner size="small" />
-              내보내는 중...
-            </>
-          ) : (
-            <>
-              <ExcelIcon />
-              엑셀로 내보내기
-            </>
+        <Box sx={{ display: 'flex', gap: 1, mb: 2, justifyContent: 'flex-end' }}>
+          {selectedItems.length > 0 && (
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleBulkDelete}
+            >
+              선택한 항목 삭제 ({selectedItems.length}개)
+            </Button>
           )}
-        </ExportButton>
-      </ButtonContainer>
+          
+          <Button
+            variant="contained"
+            color="success"
+            onClick={handleExportExcel}
+            disabled={isExporting}
+            startIcon={<ExcelIcon />}
+          >
+            {isExporting ? '내보내는 중...' : '엑셀로 내보내기'}
+          </Button>
+        </Box>
 
-      {listData?.items?.length > 0 ? (
-        <>
-          <Table>
-            <thead>
-              <tr>
-                <Th>
-                  <Checkbox
-                    type="checkbox"
-                    checked={selectedItems.length === listData.items.length}
-                    onChange={handleSelectAll}
-                  />
-                </Th>
-                <Th>날짜</Th>
-                <Th>이름</Th>
-                <Th>연락처</Th>
-                <Th>나이</Th>
-                <Th>성별</Th>
-                <Th>성격</Th>
-                <Th>BMI</Th>
-                <Th>스트레스</Th>
-                <Th>노동강도</Th>
-                <Th>증상</Th>
-                <Th>혈압</Th>
-                <Th>복용약물</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {listData.items.map(item => (
-                <tr key={item.id}>
-                  <Td>
-                    <Checkbox
-                      type="checkbox"
-                      checked={selectedItems.includes(item.id)}
-                      onChange={() => handleSelectItem(item.id)}
+        {listData?.items?.length > 0 ? (
+          <>
+            <MuiTable>
+              <TableHead>
+                <TableRow>
+                  <TableCell padding="checkbox">
+                    <MuiCheckbox
+                      checked={selectedItems.length === listData.items.length}
+                      onChange={handleSelectAll}
                     />
-                  </Td>
-                  <Td>{item.날짜}</Td>
-                  <Td>{item.이름}</Td>
-                  <Td>{item.연락처}</Td>
-                  <Td>{item.나이}</Td>
-                  <Td>{item.성별}</Td>
-                  <Td>{item.성격}</Td>
-                  <Td>{item.BMI}</Td>
-                  <Td>{item.스트레스}</Td>
-                  <Td>{item.노동강도}</Td>
-                  <Td>{item.증상}</Td>
-                  <Td>{item.혈압}</Td>
-                  <Td>{item.복용약물}</Td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+                  </TableCell>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.id}
+                      style={{ width: column.width }}
+                      sortDirection={orderBy === column.id ? order : false}
+                    >
+                      <TableSortLabel
+                        active={orderBy === column.id}
+                        direction={orderBy === column.id ? order : 'asc'}
+                        onClick={() => handleRequestSort(column.id)}
+                      >
+                        {column.label}
+                      </TableSortLabel>
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {listData.items.map(item => (
+                  <TableRow 
+                    key={item.id}
+                    selected={selectedItems.includes(item.id)}
+                    hover
+                  >
+                    <TableCell padding="checkbox">
+                      <MuiCheckbox
+                        checked={selectedItems.includes(item.id)}
+                        onChange={() => handleSelectItem(item.id)}
+                      />
+                    </TableCell>
+                    {columns.map(column => (
+                      <TableCell key={column.id}>{item[column.id]}</TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </MuiTable>
 
-          <Pagination
-            currentPage={listData.currentPage}
-            totalPages={listData.totalPages}
-            onPageChange={(page) => loadList({ page })}
-          />
-        </>
-      ) : (
-        <EmptyState>데이터가 없습니다.</EmptyState>
-      )}
-    </ListContainer>
+            <Box sx={{ mt: 2 }}>
+              <Pagination
+                currentPage={listData.currentPage}
+                totalPages={listData.totalPages}
+                onPageChange={(page) => loadList({ page, sort: orderBy, order })}
+              />
+            </Box>
+          </>
+        ) : (
+          <Box sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
+            데이터가 없습니다.
+          </Box>
+        )}
+      </Box>
+    </TableContainer>
   );
 };
 
-const ListContainer = styled.div`
-  padding: 20px;
-`;
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin: 1rem 0;
-  font-size: 0.9rem;
-`;
-
-const Th = styled.th`
-  background-color: #f8f9fa;
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 2px solid #dee2e6;
-  white-space: nowrap;
-`;
-
-const Td = styled.td`
-  padding: 0.75rem;
-  border-bottom: 1px solid #dee2e6;
-  white-space: nowrap;
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 40px;
-  color: #666;
-`;
-
-const Checkbox = styled.input`
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-`;
-
-const DeleteButton = styled.button`
-  padding: 0.5rem 1rem;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-weight: 500;
-
-  &:hover {
-    background-color: #c82333;
-  }
-`;
-
-const ButtonContainer = styled.div`
-  display: flex;
-  gap: 10px;
-  margin-bottom: 1rem;
-  justify-content: flex-end;
-`;
-
-const ExportButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #218838;
-  }
-
-  &:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-`;
-
-// ErrorBoundary로 감싸서 내보내기
 export default function HealthInfoListWithErrorBoundary() {
   return (
     <ErrorBoundary>
