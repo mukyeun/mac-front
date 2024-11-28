@@ -5,6 +5,7 @@ import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { IconButton, Box } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
+import { QueryClient, QueryClientProvider, useQueryClient, useMutation } from '@tanstack/react-query';
 import getTheme from './styles/theme';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { Home, About, Profile, Login } from './pages';
@@ -16,6 +17,17 @@ import { 증상카테고리 } from './data/SymptomCategories';
 import { healthInfoService } from './services/api';
 import PrivateRoute from './components/common/PrivateRoute';
 import { useAuth } from './hooks/useAuth';
+
+// QueryClient 설정
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 5 * 60 * 1000,
+    },
+  },
+});
 
 const AppContainer = styled.div`
   max-width: 1200px;
@@ -67,6 +79,7 @@ const LogoutButton = styled.button`
     color: ${({ theme }) => theme.palette?.error?.main || '#d32f2f'};
   }
 `;
+
 const initialFormData = {
   기본정보: {
     이름: '',
@@ -110,11 +123,12 @@ const ThemeToggleButton = () => {
     </IconButton>
   );
 };
-
 function AppContent() {
   const { mode } = useTheme();
   const theme = React.useMemo(() => getTheme(mode), [mode]);
   const { user, isAuthenticated, logout } = useAuth();
+  const queryClient = useQueryClient();
+
   const [formData, setFormData] = useState(initialFormData);
   const [selectedSymptoms, setSelectedSymptoms] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState({
@@ -122,10 +136,21 @@ function AppContent() {
     중분류: '',
     소분류: ''
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
   const [isValid, setIsValid] = useState(true);
+
+  const createMutation = useMutation({
+    mutationFn: (data) => healthInfoService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['healthInfo']);
+      alert('건강정보가 성공적으로 저장되었습니다.');
+      handleReset();
+    },
+    onError: (error) => {
+      console.error('저장 실패:', error);
+      alert(`저장에 실패했습니다: ${error.message}`);
+    }
+  });
 
   const handleInputChange = (e, section) => {
     const { name, value } = e.target;
@@ -139,41 +164,23 @@ function AppContent() {
   };
 
   const handleSubmit = async () => {
-    try {
-      const saveData = {
-        기본정보: formData.기본정보 || {},
-        증상선택: formData.증상선택 || {},
-        맥파분석: {
-          수축기혈압: formData.맥파분석?.수축기혈압 || '',
-          이완기혈압: formData.맥파분석?.이완기혈압 || '',
-          맥박수: formData.맥파분석?.맥박수 || ''
-        },
-        복용약물: {
-          약물: formData.복용약물?.약물 || [],
-          기호식품: formData.복용약물?.기호식품 || []
-        },
-        메모: formData.메모 || '',
-        created_at: new Date().toISOString()
-      };
+    const saveData = {
+      기본정보: formData.기본정보 || {},
+      증상선택: formData.증상선택 || {},
+      맥파분석: {
+        수축기혈압: formData.맥파분석?.수축기혈압 || '',
+        이완기혈압: formData.맥파분석?.이완기혈압 || '',
+        맥박수: formData.맥파분석?.맥박수 || ''
+      },
+      복용약물: {
+        약물: formData.복용약물?.약물 || [],
+        기호식품: formData.복용약물?.기호식품 || []
+      },
+      메모: formData.메모 || '',
+      created_at: new Date().toISOString()
+    };
 
-      const response = await healthInfoService.create(saveData);
-      if (response) {
-        alert('건강정보가 성공적으로 저장되었습니다.');
-        setFormData({...initialFormData});
-        setSelectedSymptoms([]);
-        setSelectedCategory({
-          대분류: '',
-          중분류: '',
-          소분류: ''
-        });
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      }
-    } catch (error) {
-      console.error('저장 실패:', error);
-      alert(`저장에 실패했습니다: ${error.message}`);
-    }
+    createMutation.mutate(saveData);
   };
 
   const handleReset = () => {
@@ -184,18 +191,6 @@ function AppContent() {
       중분류: '',
       소분류: ''
     });
-  };
-
-  const handleSearch = async (searchParams) => {
-    setIsLoading(true);
-    try {
-      const results = await searchData(searchParams);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('검색 중 오류 발생:', error);
-    } finally {
-      setIsLoading(false);
-    }
   };
 
   const styledTheme = {
@@ -288,9 +283,11 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

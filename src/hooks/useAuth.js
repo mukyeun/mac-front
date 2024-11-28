@@ -52,12 +52,70 @@ export const useAuth = () => {
     return !!tokenService.getToken();
   }, []);
 
+  // 회원가입
+  const register = useCallback(async (userData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axiosInstance.post('/api/users/register', userData);
+      return response.data;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || '회원가입 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 사용자 정보 업데이트
+  const updateProfile = useCallback(async (profileData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axiosInstance.put('/api/users/profile', profileData);
+      const updatedUser = response.data.data;
+      
+      tokenService.setUser(updatedUser);
+      setUser(updatedUser);
+      
+      return updatedUser;
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || '프로필 업데이트 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // 비밀번호 변경
+  const changePassword = useCallback(async (passwordData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await axiosInstance.post('/api/users/change-password', passwordData);
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || '비밀번호 변경 중 오류가 발생했습니다.';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     user,
     loading,
     error,
     login,
     logout,
+    register,
+    updateProfile,
+    changePassword,
     isAuthenticated
   };
 };

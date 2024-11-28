@@ -1,58 +1,61 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { authService } from '../../services/authService';
 import HealthInfoTest from './HealthInfoTest';
 
 const APITest = () => {
   const [result, setResult] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleError = (error, action) => {
+    console.error(`${action} error:`, error);
+    setError(error.message || `${action}에 실패했습니다.`);
+    setResult(
+      `${action} failed\n\n` +
+      `Message: ${error.message}\n\n` +
+      `Details:\n${JSON.stringify(error.response?.data || {}, null, 2)}`
+    );
+  };
+
+  const clearError = () => {
+    setError(null);
+  };
 
   const testRegister = async () => {
+    clearError();
+    setLoading(true);
     const timestamp = new Date().getTime() % 10000;
     const testUserData = {
       username: `test${timestamp}`,
       email: `test${timestamp}@naver.com`,
-      password: "Test1234!@#",
+      password: "Test1234!@",
       name: "테스트유저"
     };
     
     try {
       console.log('Sending registration request with data:', testUserData);
+      const response = await authService.register(testUserData);
+      console.log('Registration successful:', response);
       
-      const response = await axios({
-        method: 'post',
-        url: 'http://localhost:5000/api/users/register',
-        data: testUserData,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        withCredentials: true
-      });
-      
-      console.log('Registration successful:', response.data);
-      
-      if (response.data.data.token) {
-        localStorage.setItem('token', response.data.data.token);
-        setToken(response.data.data.token);
+      if (response.token) {
+        setToken(response.token);
         setIsLoggedIn(true);
         localStorage.setItem('testEmail', testUserData.email);
         localStorage.setItem('testPassword', testUserData.password);
+        setResult(JSON.stringify(response, null, 2));
       }
-      
-      setResult(JSON.stringify(response.data, null, 2));
     } catch (error) {
-      console.error('Registration error:', error.response?.data);
-      setResult(
-        `Registration failed\n\n` +
-        `Status: ${error.response?.status}\n` +
-        `Message: ${error.response?.data?.message || error.message}\n\n` +
-        `Details:\n${JSON.stringify(error.response?.data, null, 2)}`
-      );
+      handleError(error, '회원가입');
+    } finally {
+      setLoading(false);
     }
   };
 
   const testLogin = async () => {
+    clearError();
+    setLoading(true);
     const loginData = {
       email: localStorage.getItem('testEmail'),
       password: localStorage.getItem('testPassword')
@@ -60,73 +63,96 @@ const APITest = () => {
     
     try {
       console.log('Sending login request with data:', loginData);
+      const response = await authService.login(loginData);
+      console.log('Login successful:', response);
       
-      const response = await axios({
-        method: 'post',
-        url: 'http://localhost:5000/api/users/login',
-        data: loginData,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        withCredentials: true
-      });
-      
-      console.log('Login successful:', response.data);
-      
-      if (response.data.data.token) {
-        localStorage.setItem('token', response.data.data.token);
-        setToken(response.data.data.token);
+      if (response.token) {
+        setToken(response.token);
         setIsLoggedIn(true);
+        setResult(JSON.stringify(response, null, 2));
       }
-      
-      setResult(JSON.stringify(response.data, null, 2));
     } catch (error) {
-      console.error('Login error:', error.response?.data);
-      setResult(
-        `Login failed\n\n` +
-        `Status: ${error.response?.status}\n` +
-        `Message: ${error.response?.data?.message || error.message}\n\n` +
-        `Details:\n${JSON.stringify(error.response?.data, null, 2)}`
-      );
+      handleError(error, '로그인');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const testLogout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setIsLoggedIn(false);
-    setResult('로그아웃 되었습니다.');
+  const testLogout = async () => {
+    clearError();
+    setLoading(true);
+    try {
+      await authService.logout();
+      setToken(null);
+      setIsLoggedIn(false);
+      setResult('로그아웃 되었습니다.');
+    } catch (error) {
+      handleError(error, '로그아웃');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div style={{ padding: '20px' }}>
       <div style={{ marginBottom: '40px' }}>
         <h2>인증 API 테스트</h2>
+        
+        {error && (
+          <div style={{ 
+            padding: '10px', 
+            marginBottom: '20px', 
+            backgroundColor: '#ffebee', 
+            color: '#c62828',
+            borderRadius: '4px',
+            border: '1px solid #ef9a9a'
+          }}>
+            {error}
+          </div>
+        )}
+
         <div style={{ marginBottom: '20px' }}>
           <strong>현재 상태:</strong> {isLoggedIn ? '로그인됨' : '로그아웃됨'}
+          {loading && <span style={{ marginLeft: '10px', color: '#666' }}>(처리 중...)</span>}
         </div>
         
-        <div style={{ marginBottom: '20px', gap: '10px', display: 'flex' }}>
+        <div style={{ 
+          marginBottom: '20px', 
+          gap: '10px', 
+          display: 'flex' 
+        }}>
           <button 
             onClick={testRegister}
-            style={{ padding: '8px 16px' }}
+            disabled={loading}
+            style={{ 
+              padding: '8px 16px',
+              opacity: loading ? 0.7 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}
           >
             회원가입 테스트
           </button>
           
           <button 
             onClick={testLogin}
-            style={{ padding: '8px 16px' }}
-            disabled={isLoggedIn}
+            disabled={loading || isLoggedIn}
+            style={{ 
+              padding: '8px 16px',
+              opacity: (loading || isLoggedIn) ? 0.7 : 1,
+              cursor: (loading || isLoggedIn) ? 'not-allowed' : 'pointer'
+            }}
           >
             로그인 테스트
           </button>
           
           <button 
             onClick={testLogout}
-            style={{ padding: '8px 16px' }}
-            disabled={!isLoggedIn}
+            disabled={loading || !isLoggedIn}
+            style={{ 
+              padding: '8px 16px',
+              opacity: (loading || !isLoggedIn) ? 0.7 : 1,
+              cursor: (loading || !isLoggedIn) ? 'not-allowed' : 'pointer'
+            }}
           >
             로그아웃 테스트
           </button>
@@ -139,14 +165,19 @@ const APITest = () => {
             padding: '15px', 
             borderRadius: '5px',
             whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word'
+            wordBreak: 'break-word',
+            border: '1px solid #ddd'
           }}>
             {result}
           </pre>
         </div>
       </div>
 
-      <div style={{ marginTop: '40px', borderTop: '1px solid #eee', paddingTop: '20px' }}>
+      <div style={{ 
+        marginTop: '40px', 
+        borderTop: '1px solid #eee', 
+        paddingTop: '20px' 
+      }}>
         <HealthInfoTest />
       </div>
     </div>
