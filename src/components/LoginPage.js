@@ -1,116 +1,97 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-const LoginPage = ({ onLogin }) => {
-  const [loginData, setLoginData] = useState({
-    email: '',
-    password: ''
-  });
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setLoginData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onLogin(e);
+    setError('');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        login(data.user, data.token);
+        navigate('/');
+      } else {
+        setError(data.message || '로그인에 실패했습니다.');
+      }
+    } catch (err) {
+      setError('서버 오류가 발생했습니다.');
+    }
   };
 
   return (
-    <LoginContainer>
-      <LoginForm onSubmit={handleSubmit}>
-        <Title>로그인</Title>
-        <InputGroup>
-          <Label>이메일</Label>
-          <Input
+    <div style={{ 
+      maxWidth: '400px', 
+      margin: '100px auto', 
+      padding: '20px',
+      boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+      borderRadius: '8px',
+      backgroundColor: 'white'
+    }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '20px' }}>로그인</h2>
+      {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '15px' }}>
+          <label>이메일</label>
+          <input
             type="email"
-            name="email"
-            value={loginData.email}
-            onChange={handleChange}
-            placeholder="이메일을 입력하세요"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px',
+              marginTop: '5px',
+              border: '1px solid #ddd',
+              borderRadius: '4px'
+            }}
             required
           />
-        </InputGroup>
-        <InputGroup>
-          <Label>비밀번호</Label>
-          <Input
+        </div>
+        <div style={{ marginBottom: '15px' }}>
+          <label>비밀번호</label>
+          <input
             type="password"
-            name="password"
-            value={loginData.password}
-            onChange={handleChange}
-            placeholder="비밀번호를 입력하세요"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '8px',
+              marginTop: '5px',
+              border: '1px solid #ddd',
+              borderRadius: '4px'
+            }}
             required
           />
-        </InputGroup>
-        <LoginButton type="submit">로그인</LoginButton>
-      </LoginForm>
-    </LoginContainer>
+        </div>
+        <button type="submit" style={{
+          width: '100%',
+          padding: '12px',
+          backgroundColor: '#4A90E2',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          fontSize: '16px',
+          cursor: 'pointer'
+        }}>로그인</button>
+      </form>
+    </div>
   );
 };
-
-const LoginContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: #f8f9fa;
-`;
-
-const LoginForm = styled.form`
-  background: white;
-  padding: 40px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 400px;
-`;
-
-const Title = styled.h2`
-  text-align: center;
-  margin-bottom: 30px;
-  color: #495057;
-`;
-
-const InputGroup = styled.div`
-  margin-bottom: 20px;
-`;
-
-const Label = styled.label`
-  display: block;
-  margin-bottom: 8px;
-  color: #495057;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #dde2e5;
-  border-radius: 4px;
-  font-size: 16px;
-
-  &:focus {
-    border-color: #4A90E2;
-    outline: none;
-  }
-`;
-
-const LoginButton = styled.button`
-  width: 100%;
-  padding: 12px;
-  background: #4A90E2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-
-  &:hover {
-    background: #357ABD;
-  }
-`;
 
 export default LoginPage; 

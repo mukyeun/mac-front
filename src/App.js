@@ -8,15 +8,19 @@ import { Brightness4, Brightness7 } from '@mui/icons-material';
 import { QueryClient, QueryClientProvider, useQueryClient, useMutation } from '@tanstack/react-query';
 import getTheme from './styles/theme';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Home, About, Profile, Login } from './pages';
 import APITest from './components/test/APITest';
-import { searchData } from './utils/dataManager';
 import HealthInfoForm from './components/health/HealthInfoForm';
 import HealthInfoList from './components/health/HealthInfoList';
 import { 증상카테고리 } from './data/SymptomCategories';
 import { healthInfoService } from './services/api';
+import Layout from './components/layout/Layout';
+import HealthInfoPage from './pages/HealthInfoPage';
+import SymptomsPage from './pages/SymptomsPage';
 import PrivateRoute from './components/common/PrivateRoute';
-import { useAuth } from './hooks/useAuth';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import LoginPage from './components/LoginPage';
 
 // QueryClient 설정
 const queryClient = new QueryClient({
@@ -124,9 +128,10 @@ const ThemeToggleButton = () => {
   );
 };
 function AppContent() {
+  console.log('AppContent rendering');
   const { mode } = useTheme();
   const theme = React.useMemo(() => getTheme(mode), [mode]);
-  const { user, isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState(initialFormData);
@@ -136,8 +141,6 @@ function AppContent() {
     중분류: '',
     소분류: ''
   });
-  const [validationErrors, setValidationErrors] = useState({});
-  const [isValid, setIsValid] = useState(true);
 
   const createMutation = useMutation({
     mutationFn: (data) => healthInfoService.create(data),
@@ -231,9 +234,7 @@ function AppContent() {
                 isAuthenticated ? <Navigate to="/" replace /> : <Login />
               } />
               <Route path="/" element={
-                <PrivateRoute>
-                  <Home />
-                </PrivateRoute>
+                !isAuthenticated ? <Navigate to="/login" replace /> : <Home />
               } />
               <Route path="/list" element={
                 <PrivateRoute>
@@ -252,8 +253,6 @@ function AppContent() {
                     handleInputChange={handleInputChange}
                     handleSubmit={handleSubmit}
                     handleReset={handleReset}
-                    validationErrors={validationErrors}
-                    isValid={isValid}
                     증상카테고리={증상카테고리}
                   />
                 </PrivateRoute>
@@ -282,10 +281,24 @@ function AppContent() {
 }
 
 function App() {
+  const theme = getTheme('light');
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AppContent />
+      <ThemeProvider theme={theme}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route 
+              path="/*" 
+              element={
+                <ProtectedRoute>
+                  <AppContent />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

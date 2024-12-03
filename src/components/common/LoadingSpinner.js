@@ -1,38 +1,32 @@
 import React from 'react';
-import { CircularProgress, Box, Typography } from '@mui/material';
 
-function LoadingSpinner({ 
-  message = '로딩 중...', 
-  size = 40,
-  height = 200,
-  color = 'primary'
-}) {
+const LoadingSpinner = () => {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: height,
-        gap: 2
-      }}
-    >
-      <CircularProgress 
-        size={size}
-        color={color}
-      />
-      <Typography 
-        variant="body1" 
-        sx={{ 
-          color: 'text.secondary',
-          mt: 2 
-        }}
-      >
-        {message}
-      </Typography>
-    </Box>
+    <div style={{
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      height: '100vh',
+      width: '100%'
+    }}>
+      <div style={{
+        width: '50px',
+        height: '50px',
+        border: '5px solid #f3f3f3',
+        borderTop: '5px solid #3498db',
+        borderRadius: '50%',
+        animation: 'spin 1s linear infinite'
+      }} />
+      <style>
+        {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}
+      </style>
+    </div>
   );
-}
+};
 
 export default LoadingSpinner;

@@ -1,17 +1,15 @@
 import axios from 'axios';
-import tokenService from './token';
+import { tokenService } from './tokenService';
 
-const baseURL = process.env.REACT_APP_API_URL;
-
+// axios 인스턴스 생성
 const axiosInstance = axios.create({
-  baseURL,
-  timeout: 5000,
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
   headers: {
-    'Content-Type': 'application/json'
-  }
+    'Content-Type': 'application/json',
+  },
 });
 
-// Request interceptor
+// 요청 인터셉터
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = tokenService.getToken();
@@ -25,36 +23,35 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor
+// 응답 인터셉터
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
+    // 401 에러이고 토큰이 만료된 경우
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      tokenService.clearAll();
-      window.location.href = '/login';
+
+      try {
+        // 토큰 갱신 로직이 필요한 경우 여기에 구현
+        // const response = await axiosInstance.post('/api/auth/refresh-token');
+        // const { token } = response.data;
+        // tokenService.setToken(token);
+        // originalRequest.headers.Authorization = `Bearer ${token}`;
+        // return axiosInstance(originalRequest);
+
+        // 현재는 로그아웃 처리
+        tokenService.clearAll();
+        window.location.href = '/login';
+      } catch (err) {
+        tokenService.clearAll();
+        window.location.href = '/login';
+      }
     }
 
     return Promise.reject(error);
   }
 );
-
-// API endpoints
-export const authAPI = {
-  login: (data) => axiosInstance.post('/users/login', data),
-  register: (data) => axiosInstance.post('/users/register', data),
-  verify: () => axiosInstance.get('/users/verify'),
-  logout: () => axiosInstance.post('/users/logout')
-};
-
-export const healthInfoAPI = {
-  getAll: (params) => axiosInstance.get('/health-info', { params }),
-  getOne: (id) => axiosInstance.get(`/health-info/${id}`),
-  create: (data) => axiosInstance.post('/health-info', data),
-  update: (id, data) => axiosInstance.put(`/health-info/${id}`, data),
-  delete: (id) => axiosInstance.delete(`/health-info/${id}`)
-};
 
 export default axiosInstance;

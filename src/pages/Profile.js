@@ -1,48 +1,133 @@
-import React from 'react';
-import { Container } from '../components/common';
-import styled from 'styled-components';
+import React, { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 
-const ProfileContainer = styled(Container)`
-  padding-top: 2rem;
-`;
+const Profile = () => {
+  const { user, updateProfile, loading, error } = useAuth();
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || ''
+  });
 
-const ProfileHeader = styled.div`
-  margin-bottom: 2rem;
-`;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-const ProfileTitle = styled.h1`
-  font-size: var(--font-size-title);
-  margin-bottom: 1rem;
-`;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await updateProfile(formData);
+      alert('프로필이 업데이트되었습니다.');
+    } catch (err) {
+      console.error('Profile update failed:', err);
+    }
+  };
 
-const ProfileSection = styled.section`
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  margin-bottom: 1.5rem;
-`;
-
-function Profile() {
   return (
-    <ProfileContainer>
-      <ProfileHeader>
-        <ProfileTitle>프로필</ProfileTitle>
-      </ProfileHeader>
-      
-      <ProfileSection>
-        {/* 프로필 정보 */}
-        <h2>개인 정보</h2>
-        {/* 여기에 프로필 정보 컴포넌트 추가 */}
-      </ProfileSection>
+    <div style={{
+      padding: '20px',
+      maxWidth: '600px',
+      margin: '40px auto',
+      backgroundColor: '#fff',
+      borderRadius: '8px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+    }}>
+      <h2 style={{
+        marginBottom: '30px',
+        color: '#333',
+        textAlign: 'center'
+      }}>
+        프로필 설정
+      </h2>
 
-      <ProfileSection>
-        {/* 건강 정보 요약 */}
-        <h2>건강 정보 요약</h2>
-        {/* 여기에 건강 정보 요약 컴포넌트 추가 */}
-      </ProfileSection>
-    </ProfileContainer>
+      {error && (
+        <div style={{
+          padding: '10px',
+          marginBottom: '20px',
+          backgroundColor: '#ffebee',
+          color: '#c62828',
+          borderRadius: '4px'
+        }}>
+          {error}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            color: '#666',
+            fontSize: '14px'
+          }}>
+            이름
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px'
+            }}
+            placeholder="이름을 입력하세요"
+          />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            color: '#666',
+            fontSize: '14px'
+          }}>
+            이메일
+          </label>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            disabled
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              backgroundColor: '#f5f5f5',
+              fontSize: '14px'
+            }}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: '#4285f4',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.7 : 1,
+            fontSize: '14px',
+            fontWeight: '500'
+          }}
+        >
+          {loading ? '업데이트 중...' : '프로필 업데이트'}
+        </button>
+      </form>
+    </div>
   );
-}
+};
 
 export default Profile;

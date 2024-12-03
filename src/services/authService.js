@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import { tokenService } from '../utils/token';
+import { tokenService } from '../utils/tokenService';
 
 export const authService = {
   // 로그인

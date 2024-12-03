@@ -1,0 +1,95 @@
+.symptom-filter {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section {
+    margin-bottom: 24px;
+}
+
+.filter-section:last-child {
+    margin-bottom: 0;
+}
+
+.filter-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+}
+
+.filter-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-tag {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.filter-tag:hover {
+    background-color: #bbdefb;
+}
+
+.filter-tag.related {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.filter-tag.related:hover {
+    background-color: #e1bee7;
+}
+
+.filter-tag.active {
+    background-color: #2196f3;
+    color: white;
+}
+
+.filter-tag.related.active {
+    background-color: #9c27b0;
+    color: white;
+}
+
+.no-symptoms {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+    font-size: 15px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .symptom-filter {
+        padding: 16px;
+    }
+
+    .filter-section {
+        margin-bottom: 20px;
+    }
+
+    .filter-section h3 {
+        font-size: 15px;
+    }
+
+    .filter-tag {
+        font-size: 13px;
+        padding: 4px 10px;
+    }
+
+    .no-symptoms {
+        padding: 30px 16px;
+        font-size: 14px;
+    }
+}

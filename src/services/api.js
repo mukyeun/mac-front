@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-// 임시로 하드코딩
-const BASE_URL = 'http://localhost:5000/api';
-console.log('Using API Base URL:', BASE_URL);
+// BASE_URL 설정
+const BASE_URL = 'http://localhost:5000';
 
 // axios 기본 설정
 axios.defaults.baseURL = BASE_URL;
 axios.defaults.headers.common['Content-Type'] = 'application/json';
+axios.defaults.headers.common['Accept'] = 'application/json';
 
 // 요청 인터셉터 추가
 axios.interceptors.request.use(
@@ -40,13 +40,26 @@ export const authService = {
   // 로그인
   async login(credentials) {
     try {
-      const response = await axios.post('/users/login', credentials);
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      console.log('Sending login request to:', `${BASE_URL}/api/auth/login`);
+      const response = await axios.post('/api/auth/login', credentials, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (response.data && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+      
       return response.data;
     } catch (error) {
-      console.error('로그인 에러:', error);
+      console.error('Login error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
       throw new Error(error.response?.data?.message || '로그인에 실패했습니다.');
     }
   },
@@ -142,6 +155,15 @@ export const healthInfoService = {
       throw new Error(error.response?.data?.message || '삭제에 실패했습니다.');
     }
   }
+};
+
+// API 서비스 구조화
+const healthInfoAPI = {
+  create: (data) => axios.post('/api/health-info', data),
+  update: (id, data) => axios.put(`/api/health-info/${id}`, data),
+  delete: (id) => axios.delete(`/api/health-info/${id}`),
+  get: (id) => axios.get(`/api/health-info/${id}`),
+  list: (params) => axios.get('/api/health-info', { params })
 };
 
 export default {

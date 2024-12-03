@@ -1,83 +1,37 @@
-import { createContext, useContext, useState, useCallback } from 'react';
-import axiosInstance from '../utils/axios';
-import tokenService from '../utils/token';
+import React, { createContext, useContext, useState } from 'react';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext({
+  isAuthenticated: false,
+  user: null,
+  login: () => {},
+  logout: () => {}
+});
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(tokenService.getUser());
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const login = useCallback(async (email, password) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axiosInstance.post('/api/users/login', {
-        email,
-        password
-      });
+  const login = (userData, token) => {
+    setUser(userData);
+    setIsAuthenticated(true);
+    localStorage.setItem('token', token);
+  };
 
-      const { token, user } = response.data.data;
-      tokenService.setToken(token);
-      tokenService.setUser(user);
-      setUser(user);
-      return user;
-    } catch (err) {
-      setError(err.response?.data?.message || '로그인 중 오류가 발생했습니다.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const register = useCallback(async (userData) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axiosInstance.post('/api/users/register', userData);
-      
-      const { token, user } = response.data.data;
-      tokenService.setToken(token);
-      tokenService.setUser(user);
-      setUser(user);
-      return user;
-    } catch (err) {
-      setError(err.response?.data?.message || '회원가입 중 오류가 발생했습니다.');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const logout = useCallback(() => {
-    tokenService.clearAll();
+  const logout = () => {
     setUser(null);
-  }, []);
-
-  const value = {
-    user,
-    loading,
-    error,
-    login,
-    register,
-    logout,
-    isAuthenticated: !!user
+    setIsAuthenticated(false);
+    localStorage.removeItem('token');
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
 export default AuthContext;

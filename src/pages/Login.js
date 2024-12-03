@@ -1,134 +1,128 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
-import { login } from '../api/auth';
-import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
-const LoginContainer = styled.div`
-  max-width: 400px;
-  margin: 100px auto;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  background-color: white;
-`;
-
-const Title = styled.h2`
-  text-align: center;
-  color: #333;
-  margin-bottom: 2rem;
-`;
-
-const Form = styled.form`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-const Input = styled.input`
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-  }
-`;
-
-const Button = styled.button`
-  padding: 0.8rem;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-
-  &:hover {
-    background-color: #2563eb;
-  }
-
-  &:disabled {
-    background-color: #93c5fd;
-    cursor: not-allowed;
-  }
-`;
-
-const ErrorMessage = styled.div`
-  color: #dc2626;
-  font-size: 0.9rem;
-  text-align: center;
-  margin-top: 1rem;
-`;
-
-function Login() {
-  const [credentials, setCredentials] = useState({
-    email: '',
-    password: ''
-  });
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login, loading, error } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
     try {
-      const response = await login(credentials);
-      console.log('로그인 성공:', response);
-      navigate('/');
-    } catch (error) {
-      console.error('로그인 실패:', error);
-      setError(error.response?.data?.message || '로그인에 실패했습니다.');
-    } finally {
-      setIsLoading(false);
+      await login(email, password);
+      const from = location.state?.from || '/';
+      navigate(from, { replace: true });
+    } catch (err) {
+      console.error('Login failed:', err);
     }
   };
 
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
   return (
-    <LoginContainer>
-      <Title>로그인</Title>
-      <Form onSubmit={handleSubmit}>
-        <Input
-          type="email"
-          name="email"
-          placeholder="이메일"
-          value={credentials.email}
-          onChange={handleChange}
-          required
-        />
-        <Input
-          type="password"
-          name="password"
-          placeholder="비밀번호"
-          value={credentials.password}
-          onChange={handleChange}
-          required
-        />
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? '로그인 중...' : '로그인'}
-        </Button>
-        {error && <ErrorMessage>{error}</ErrorMessage>}
-      </Form>
-    </LoginContainer>
-  );
-}
+    <div style={{ 
+      maxWidth: '400px', 
+      margin: '40px auto',
+      padding: '30px',
+      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      borderRadius: '8px',
+      backgroundColor: 'white'
+    }}>
+      <h2 style={{ 
+        textAlign: 'center', 
+        marginBottom: '30px',
+        color: '#333'
+      }}>
+        로그인
+      </h2>
+      
+      {error && (
+        <div style={{ 
+          color: '#c62828',
+          backgroundColor: '#ffebee',
+          padding: '10px',
+          borderRadius: '4px',
+          marginBottom: '20px',
+          fontSize: '14px'
+        }}>
+          {error}
+        </div>
+      )}
 
-export default Login;
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            color: '#666',
+            fontSize: '14px'
+          }}>
+            이메일
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px'
+            }}
+            placeholder="이메일을 입력하세요"
+            required
+          />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            color: '#666',
+            fontSize: '14px'
+          }}>
+            비밀번호
+          </label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '14px'
+            }}
+            placeholder="비밀번호를 입력하세요"
+            required
+          />
+        </div>
+
+        <button 
+          type="submit"
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: '#4285f4',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            opacity: loading ? 0.7 : 1,
+            fontSize: '14px',
+            fontWeight: '500',
+            marginTop: '10px'
+          }}
+        >
+          {loading ? '로그인 중...' : '로그인'}
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default LoginPage;

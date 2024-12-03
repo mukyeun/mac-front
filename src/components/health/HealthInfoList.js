@@ -60,6 +60,30 @@ const columns = [
   { id: 'medication', label: '복용약물', width: 150 }
 ];
 
+// 증상 표시를 위한 커스텀 셀 컴포넌트
+const SymptomsCell = ({ symptoms }) => {
+  // 증상이 없는 경우
+  if (!symptoms || symptoms.length === 0) {
+    return <TableCell>-</TableCell>;
+  }
+
+  // 증상이 3개 이상인 경우 툴팁으로 전체 목록 표시
+  if (symptoms.length > 2) {
+    return (
+      <TableCell>
+        <Tooltip title={symptoms.join(', ')} arrow placement="top">
+          <span>
+            {symptoms.slice(0, 2).join(', ')} +{symptoms.length - 2}
+          </span>
+        </Tooltip>
+      </TableCell>
+    );
+  }
+
+  // 1-2개의 증상인 경우 직접 표시
+  return <TableCell>{symptoms.join(', ')}</TableCell>;
+};
+
 const HealthInfoList = () => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
@@ -256,9 +280,12 @@ const HealthInfoList = () => {
                         onChange={() => handleSelectItem(item.id)}
                       />
                     </TableCell>
-                    {columns.map(column => (
-                      <TableCell key={column.id}>{item[column.id]}</TableCell>
-                    ))}
+                    {columns.map(column => {
+                      if (column.id === 'symptoms') {
+                        return <SymptomsCell key={column.id} symptoms={item.symptoms} />;
+                      }
+                      return <TableCell key={column.id}>{item[column.id]}</TableCell>;
+                    })}
                   </TableRow>
                 ))}
               </TableBody>

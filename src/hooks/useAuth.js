@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../utils/axios';
-import tokenService from '../utils/token';
+import tokenService from '../utils/tokenService';
 
 export const useAuth = () => {
   const navigate = useNavigate();
